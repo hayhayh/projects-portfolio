@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A selection of projects by Hay Lee." />
+    <title>Hay Lee — Projects</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main>
+      <header class="intro">
+        <p class="eyebrow">Selected work</p>
+        <h1>Things I’ve been working on.</h1>
+        <p class="lede">A working collection of personal tools, experiments, and small products—plus a few open-source projects I use and explore.</p>
+      </header>
+
+      <section class="controls" aria-label="Filter projects">
+        <label class="search">
+          <span class="sr-only">Search projects</span>
+          <input id="search" type="search" placeholder="Search projects" autocomplete="off" />
+        </label>
+        <div id="filters" class="filters" aria-label="Project categories"></div>
+      </section>
+
+      <p id="project-count" class="project-count" aria-live="polite"></p>
+      <section id="projects" class="projects" aria-label="Projects"></section>
+    </main>
+    <footer>Built and maintained by Hay Lee.</footer>
+    <script src="projects.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
