@@ -9,6 +9,10 @@ main { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 92px 0 56
 .eyebrow { color: var(--accent); margin: 0 0 18px; }
 h1 { font: 600 clamp(44px, 8vw, 88px)/.98 Fraunces, serif; letter-spacing: -.055em; margin: 0; }
 .lede { max-width: 610px; margin: 25px 0 0; color: var(--muted); font-size: 18px; line-height: 1.65; }
+.about { max-width: 610px; margin: 34px 0 0; padding-top: 26px; border-top: 1px solid var(--line); }
+.about p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.65; }
+.about a { display: inline-block; margin-top: 12px; color: var(--ink); font: 500 11px "DM Mono", monospace; letter-spacing: .04em; text-decoration: none; border-bottom: 1px solid var(--accent); padding-bottom: 3px; }
+.about a:hover { color: var(--accent); }
 .controls { display: flex; justify-content: space-between; gap: 24px; align-items: center; border-top: 1px solid var(--line); margin-top: 78px; padding-top: 20px; }
 .search input { width: 220px; padding: 9px 0; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; background: transparent; color: var(--ink); font: 14px Manrope, sans-serif; outline: none; }
 .search input:focus { border-color: var(--accent); }
