@@ -12,4 +12,4 @@ The included workflow deploys the static site after each push to `main`.
 
 ## Maintaining projects
 
-Edit `projects.js` to add, remove, or update cards. A `github` field is deliberately present only for verified public repositories. Do not add private repository URLs; omit the field instead.
+Edit `projects.js` to add, remove, or update entries. A `github` field is deliberately present only for verified public repositories. Do not add private repository URLs; omit the field instead.
