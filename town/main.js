@@ -84,7 +84,7 @@ function placeRow(row, sign) {
     // district sign at the lane mouth
     const signTex = signTexture(cat, `${list.length} project${list.length === 1 ? '' : 's'}`, color);
     const post = makeSignPost(signTex); post.position.set(cx, 0, sign * (STREET_HALF + 3.2)); post.rotation.y = sign < 0 ? 0 : Math.PI;
-    world.add(post); colliders.push({ x1: cx - 2.4, x2: cx + 2.4, z1: sign * (STREET_HALF + 3.2) - 0.3, z2: sign * (STREET_HALF + 3.2) + 0.3 });
+    world.add(post); for (const px of [-1.9, 1.9]) colliders.push({ x1: cx + px - 0.25, x2: cx + px + 0.25, z1: sign * (STREET_HALF + 3.2) - 0.25, z2: sign * (STREET_HALF + 3.2) + 0.25 });
     // buildings
     list.forEach((p, idx) => {
       const side = idx % 2 ? 1 : -1, rowI = Math.floor(idx / 2);
@@ -217,7 +217,7 @@ function buildInterior(rec) {
 // ---------- state ----------
 const keys = new Set();
 const cam = { yaw: Math.PI / 4, targetYaw: Math.PI / 4, zoom: 0.8, panX: 0, panZ: 0, x: 0, z: 0 };
-let mode = 'town', target = null, pendingEnter = null, near = null, hover = null, lastTown = { x: 0, z: 1 }, time = 0, fading = false;
+let mode = 'town', path = [], pendingEnter = null, near = null, hover = null, lastTown = { x: 0, z: 1 }, time = 0, fading = false;
 const pos = () => player.position;
 
 // ---------- DOM ----------
@@ -244,7 +244,7 @@ cats.forEach((cat) => {
   b.innerHTML = '<i></i>'; b.append(`${cat} · ${byCat.get(cat).length}`);
   b.addEventListener('click', () => {
     if (mode !== 'town') return;
-    const rec = buildings.find((x) => x.project.category === cat); target = null; pendingEnter = null;
+    const rec = buildings.find((x) => x.project.category === cat); path = []; pendingEnter = null;
     pos().set(rec.door.x, 0, rec.door.z); cam.panX = cam.panZ = 0; closeCard();
   });
   districtNav.append(b);
@@ -266,7 +266,7 @@ card.querySelector('.x').addEventListener('click', closeCard);
 function requestEnter(rec) {
   if (mode !== 'town' || fading) return;
   if (Math.hypot(pos().x - rec.door.x, pos().z - rec.door.z) < 2.6) enter(rec);
-  else { target = { x: rec.door.x, z: rec.door.z }; pendingEnter = rec; }
+  else { setGoal(rec.door.x, rec.door.z); pendingEnter = rec; }
 }
 function transition(fn) {
   fading = true; fade.classList.add('on');
@@ -274,7 +274,7 @@ function transition(fn) {
 }
 function enter(rec) {
   transition(() => {
-    lastTown = { x: rec.door.x, z: rec.door.z }; mode = 'inside'; pendingEnter = null; target = null;
+    lastTown = { x: rec.door.x, z: rec.door.z }; mode = 'inside'; pendingEnter = null; path = [];
     buildInterior(rec); world.visible = false; interior.visible = true;
     pos().set(INT.x + 1.5, 0, INT.z + 1.2); cam.yaw = cam.targetYaw = Math.PI / 4; cam.panX = cam.panZ = 0; cam.zoom = 1.75;
     openCard(rec); exitBtn.hidden = false; districtNav.classList.add('off');
@@ -285,7 +285,7 @@ function enter(rec) {
 function leave() {
   if (mode !== 'inside' || fading) return;
   transition(() => {
-    mode = 'town'; world.visible = true; interior.visible = false; target = null;
+    mode = 'town'; world.visible = true; interior.visible = false; path = [];
     pos().set(lastTown.x, 0, lastTown.z); cam.zoom = 0.8; cam.panX = cam.panZ = 0; closeCard(); exitBtn.hidden = true; districtNav.classList.remove('off');
   });
 }
@@ -297,7 +297,7 @@ addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (document.activeElement && ['BUTTON', 'A', 'INPUT'].includes(document.activeElement.tagName) && (e.key === ' ' || e.key === 'Enter')) return;
   dismissWelcome();
-  if (moveKeys[e.key]) { keys.add(moveKeys[e.key]); target = null; pendingEnter = null; e.preventDefault(); }
+  if (moveKeys[e.key]) { keys.add(moveKeys[e.key]); path = []; pendingEnter = null; e.preventDefault(); }
   else if (e.key === 'q' || e.key === 'Q') { if (mode === 'town') cam.targetYaw -= Math.PI / 2; }
   else if (e.key === 'r' || e.key === 'R') { if (mode === 'town') cam.targetYaw += Math.PI / 2; }
   else if (e.key === 'Escape') { if (!card.hidden && mode === 'town') closeCard(); else leave(); }
@@ -337,7 +337,7 @@ canvas.addEventListener('pointerup', (e) => {
   const b = pickBuilding(e);
   if (b) return requestEnter(b);
   const g = pickGround(e);
-  if (g) { target = { x: g.x, z: g.z }; pendingEnter = null; if (mode === 'town') closeCard(); }
+  if (g) { pendingEnter = null; setGoal(g.x, g.z); if (mode === 'town') closeCard(); }
 });
 canvas.addEventListener('wheel', (e) => { e.preventDefault(); cam.zoom = Math.max(0.4, Math.min(2.4, cam.zoom * Math.exp(-e.deltaY * 0.0012))); }, { passive: false });
 
@@ -357,6 +357,9 @@ addEventListener('resize', resize); resize();
 const SPEED = 7.2, R = 0.35;
 function blocked(x, z) {
   if (mode === 'inside') return x < INT.x - INT.hx || x > INT.x + INT.hx || z < INT.z - INT.hz || z > INT.z + INT.hz;
+  return blockedTown(x, z);
+}
+function blockedTown(x, z) {
   if (x < WORLD.x1 + 1 || x > WORLD.x2 - 1 || z < WORLD.z1 + 1 || z > WORLD.z2 - 1) return true;
   return colliders.some((c) => x + R > c.x1 && x - R < c.x2 && z + R > c.z1 && z - R < c.z2);
 }
@@ -366,15 +369,70 @@ function nearBuilding(clear) {
   for (const b of buildings) { const d = Math.hypot(pos().x - b.door.x, pos().z - b.door.z); if (d < best) { best = d; near = b; } }
 }
 
+// A* over a coarse grid of the town, so click-to-walk goes around buildings instead of into them.
+const CELL = 0.75, GW = Math.ceil((WORLD.x2 - WORLD.x1) / CELL), GH = Math.ceil((WORLD.z2 - WORLD.z1) / CELL);
+const grid = new Int8Array(GW * GH);   // 0 unknown, 1 free, -1 blocked
+const cellOf = (x, z) => [Math.floor((x - WORLD.x1) / CELL), Math.floor((z - WORLD.z1) / CELL)];
+function isFree(cx, cz) {
+  if (cx < 0 || cz < 0 || cx >= GW || cz >= GH) return false;
+  const i = cz * GW + cx;
+  if (!grid[i]) grid[i] = blockedTown(WORLD.x1 + (cx + 0.5) * CELL, WORLD.z1 + (cz + 0.5) * CELL) ? -1 : 1;
+  return grid[i] > 0;
+}
+function clearLine(a, b) {
+  const n = Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) / 0.3);
+  for (let i = 1; i < n; i++) if (blockedTown(a.x + ((b.x - a.x) * i) / n, a.z + ((b.z - a.z) * i) / n)) return false;
+  return true;
+}
+function findPath(from, to) {
+  let [sx, sz] = cellOf(from.x, from.z), [gx, gz] = cellOf(to.x, to.z);
+  if (!isFree(gx, gz)) {                                   // goal inside something: use the nearest free cell
+    let found = false;
+    for (let r = 1; r < 14 && !found; r++) for (let dx = -r; dx <= r && !found; dx++) for (let dz = -r; dz <= r && !found; dz++)
+      if (Math.max(Math.abs(dx), Math.abs(dz)) === r && isFree(gx + dx, gz + dz)) { gx += dx; gz += dz; found = true; }
+    if (!found) return [];
+  }
+  const gScore = new Map([[sz * GW + sx, 0]]), came = new Map(), open = [[0, sx, sz]], closed = new Set();
+  const h = (x, z) => { const dx = Math.abs(x - gx), dz = Math.abs(z - gz); return (dx + dz) + (Math.SQRT2 - 2) * Math.min(dx, dz); };
+  let steps = 0, end = null;
+  while (open.length && steps++ < 40000) {
+    let bi = 0; for (let i = 1; i < open.length; i++) if (open[i][0] < open[bi][0]) bi = i;
+    const [, x, z] = open.splice(bi, 1)[0], id = z * GW + x;
+    if (closed.has(id)) continue; closed.add(id);
+    if (x === gx && z === gz) { end = id; break; }
+    for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
+      if (!dx && !dz) continue;
+      const nx = x + dx, nz = z + dz, nid = nz * GW + nx;
+      if (closed.has(nid) || !isFree(nx, nz) || (dx && dz && (!isFree(x + dx, z) || !isFree(x, z + dz)))) continue;
+      const g = gScore.get(id) + (dx && dz ? Math.SQRT2 : 1);
+      if (g < (gScore.get(nid) ?? Infinity)) { gScore.set(nid, g); came.set(nid, id); open.push([g + h(nx, nz), nx, nz]); }
+    }
+  }
+  if (end === null) return [];
+  const pts = [];
+  for (let id = end; id !== undefined; id = came.get(id)) pts.push({ x: WORLD.x1 + ((id % GW) + 0.5) * CELL, z: WORLD.z1 + (Math.floor(id / GW) + 0.5) * CELL });
+  pts.reverse(); pts[pts.length - 1] = to.exact && isFree(...cellOf(to.x, to.z)) ? { x: to.x, z: to.z } : pts[pts.length - 1];
+  const out = []; let anchor = from, i = 0;                // string-pull: skip waypoints we can see past
+  while (i < pts.length) {
+    let j = pts.length - 1; while (j > i && !clearLine(anchor, pts[j])) j--;
+    out.push(pts[j]); anchor = pts[j]; i = j + 1;
+  }
+  return out;
+}
+function setGoal(x, z) {
+  if (mode === 'inside') { path = [{ x, z }]; return; }
+  path = findPath({ x: pos().x, z: pos().z }, { x, z, exact: true });
+}
+
 let moving = false;
 function update(dt) {
   // movement
   const f = [-Math.sin(cam.yaw), -Math.cos(cam.yaw)], rgt = [Math.cos(cam.yaw), -Math.sin(cam.yaw)];
   let ix = (keys.has('r') ? 1 : 0) - (keys.has('l') ? 1 : 0), iz = (keys.has('u') ? 1 : 0) - (keys.has('d') ? 1 : 0);
   let dx = rgt[0] * ix + f[0] * iz, dz = rgt[1] * ix + f[1] * iz;
-  if (!dx && !dz && target) {
-    const tx = target.x - pos().x, tz = target.z - pos().z, d = Math.hypot(tx, tz);
-    if (d < 0.25) { target = null; if (pendingEnter) { const b = pendingEnter; pendingEnter = null; mode === 'town' && enter(b); } }
+  if (!dx && !dz && path.length) {
+    const tx = path[0].x - pos().x, tz = path[0].z - pos().z, d = Math.hypot(tx, tz);
+    if (d < 0.3) { path.shift(); if (!path.length && pendingEnter) { const b = pendingEnter; pendingEnter = null; mode === 'town' && enter(b); } }
     else { dx = tx / d; dz = tz / d; }
   }
   const len = Math.hypot(dx, dz), before = pos().clone(); moving = false;
@@ -384,7 +442,7 @@ function update(dt) {
     if (!blocked(pos().x, nz)) pos().z = nz;
     moving = before.distanceTo(pos()) > step * 0.2;
     if (moving) player.rotation.y = Math.atan2(dx, dz);
-    else if (target) { target = null; pendingEnter = null; }
+    else if (path.length) { path = []; pendingEnter = null; }
     if (keys.size) { cam.panX *= 0.9; cam.panZ *= 0.9; }
   }
   animateWalk(player, time, moving ? 1 : 0); if (!moving) { player.userData.legL.rotation.x = player.userData.legR.rotation.x = player.userData.armL.rotation.x = player.userData.armR.rotation.x = 0; }
