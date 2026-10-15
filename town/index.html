@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Walk around Hayville, an explorable 3D town of Haywood Ho's projects." />
+    <title>Hayville — Hay's projects</title>
+    <link rel="stylesheet" href="town.css" />
+    <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+  </head>
+  <body>
+    <canvas id="view" aria-label="Interactive 3D town of projects. A plain list version is linked at top left."></canvas>
+    <div id="pins" aria-hidden="true"></div>
+    <div id="you" class="you"><i></i>Haywood</div>
+
+    <header class="top">
+      <div class="brand"><strong>Hayville</strong><a class="plain" href="../">← Plain list view</a></div>
+      <nav id="districts" class="districts" aria-label="Jump to a district"></nav>
+    </header>
+
+    <aside class="keys" aria-label="Controls">
+      <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>Walk</span></div>
+      <div><kbd>E</kbd><span>Enter a building</span></div>
+      <div><kbd>Q</kbd><kbd>R</kbd><span>Rotate</span></div>
+      <div><kbd>Drag</kbd><span>Move the camera</span></div>
+      <div><kbd>Scroll</kbd><span>Zoom</span></div>
+    </aside>
+
+    <button id="leave" class="leave" type="button" hidden>Leave building</button>
+    <p id="hint" class="hint" hidden></p>
+
+    <aside id="card" class="card" hidden role="dialog" aria-labelledby="card-h">
+      <button class="x" type="button" aria-label="Close">×</button>
+      <p class="cat"></p>
+      <h2 id="card-h"></h2>
+      <p class="desc"></p>
+      <a target="_blank" rel="noreferrer" hidden>View on GitHub ↗</a>
+    </aside>
+
+    <section id="welcome" class="welcome">
+      <h1>Welcome to Hayville</h1>
+      <p>I'm Haywood Ho: strategic operating partner, ex-BCG, former CEO of OneKyat/Carousell Myanmar. This town is where my side projects live. Each street is a category, each building a project. Walk in.</p>
+      <button type="button">Start exploring</button>
+    </section>
+
+    <div id="fade" class="fade"></div>
+    <div id="nogl" class="nogl" hidden><p>This town needs WebGL, which your browser isn't offering.</p><a href="../">Open the plain list instead →</a></div>
+    <noscript><div class="nogl"><p>This town needs JavaScript.</p><a href="../">Open the plain list instead →</a></div></noscript>
+    <script src="../projects.js"></script>
+    <script type="module" src="main.js"></script>
+  </body>
+</html>
