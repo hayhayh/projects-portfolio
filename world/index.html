@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Walk around Hayville, an explorable map of Haywood Ho's projects." />
+    <title>Hayville — Hay's projects</title>
+    <link rel="stylesheet" href="world.css" />
+  </head>
+  <body>
+    <canvas id="world" aria-label="Interactive map of projects. A plain list version is available from the link at top left."></canvas>
+
+    <header class="hud hud-top">
+      <div class="brand">
+        <strong>Hayville</strong>
+        <a class="plain" href="../">← Plain list view</a>
+      </div>
+      <nav id="districts" class="districts" aria-label="Jump to a district"></nav>
+    </header>
+
+    <canvas id="minimap" class="minimap" width="180" height="120" aria-hidden="true"></canvas>
+    <p id="hint" class="hint"></p>
+
+    <aside id="card" class="card" hidden role="dialog" aria-labelledby="card-name">
+      <button id="card-close" class="card-close" type="button" aria-label="Close">×</button>
+      <p id="card-cat" class="card-cat"></p>
+      <h2 id="card-name"></h2>
+      <p id="card-desc"></p>
+      <a id="card-link" class="card-link" target="_blank" rel="noreferrer" hidden>View on GitHub ↗</a>
+    </aside>
+
+    <noscript><p class="noscript">This map needs JavaScript. <a href="../">Open the plain list instead.</a></p></noscript>
+    <script src="../projects.js"></script>
+    <script src="world.js"></script>
+  </body>
+</html>

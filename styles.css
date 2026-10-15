@@ -149,3 +149,6 @@ footer a { color: var(--accent); text-decoration: underline; text-underline-offs
   .row { grid-template-columns: 1fr; row-gap: 4px; }
   .row .source { justify-self: start; }
 }
+
+.masthead .explore { display: inline-block; margin-left: 14px; color: var(--cream); font: 500 13px 'IBM Plex Sans', sans-serif; text-underline-offset: 3px; }
+.masthead .explore:hover { color: #fff; }
